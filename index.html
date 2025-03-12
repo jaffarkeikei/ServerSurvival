@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Survival</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>Server Survival</h1>
+            <div class="score-container">
+                <span>Score: <span id="score">0</span></span>
+                <span>Wave: <span id="wave">1</span></span>
+                <span>Available Resources: <span id="resources">10</span></span>
+            </div>
+        </header>
+
+        <div class="game-area">
+            <div class="metrics-panel">
+                <h2>Server Metrics</h2>
+                <div class="metric">
+                    <label>CPU:</label>
+                    <div class="progress-container">
+                        <div id="cpu-bar" class="progress-bar"></div>
+                        <span id="cpu-value">50%</span>
+                    </div>
+                </div>
+                <div class="metric">
+                    <label>Memory:</label>
+                    <div class="progress-container">
+                        <div id="memory-bar" class="progress-bar"></div>
+                        <span id="memory-value">30%</span>
+                    </div>
+                </div>
+                <div class="metric">
+                    <label>Network:</label>
+                    <div class="progress-container">
+                        <div id="network-bar" class="progress-bar"></div>
+                        <span id="network-value">20%</span>
+                    </div>
+                </div>
+                <div class="metric">
+                    <label>Error Rate:</label>
+                    <div class="progress-container">
+                        <div id="error-bar" class="progress-bar"></div>
+                        <span id="error-value">5%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="server-grid">
+                <canvas id="gameCanvas" width="500" height="400"></canvas>
+            </div>
+
+            <div class="events-log">
+                <h2>System Events</h2>
+                <div id="events-container">
+                    <div class="event">Game started. Monitoring systems online.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <div class="actions">
+                <h2>Manual Actions</h2>
+                <button id="fix-cpu" class="action-btn">Fix CPU Spike</button>
+                <button id="clear-memory" class="action-btn">Clear Memory</button>
+                <button id="restart-service" class="action-btn">Restart Service</button>
+                <button id="fix-network" class="action-btn">Fix Network</button>
+            </div>
+            
+            <div class="scaling">
+                <h2>Scale Resources</h2>
+                <button id="add-cpu" class="scale-btn">Add CPU</button>
+                <button id="add-memory" class="scale-btn">Add Memory</button>
+                <button id="improve-network" class="scale-btn">Improve Network</button>
+            </div>
+            
+            <div class="automation">
+                <h2>Automation</h2>
+                <button id="toggle-auto-heal" class="auto-btn">Enable Auto-Healing</button>
+                <button id="toggle-auto-scale" class="auto-btn">Enable Auto-Scaling</button>
+            </div>
+        </div>
+
+        <div id="gameOver" class="game-over">
+            <div class="game-over-content">
+                <h2>Server Crashed!</h2>
+                <p>Your servers couldn't handle the chaos.</p>
+                <p>Final Score: <span id="final-score">0</span></p>
+                <button id="restart-game">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html> 
