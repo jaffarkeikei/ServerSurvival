@@ -30,6 +30,7 @@ header {
     justify-content: space-between;
     align-items: center;
     border-bottom: 2px solid #45475a;
+    flex-wrap: wrap;
 }
 
 h1 {
@@ -44,6 +45,36 @@ h1 {
 
 .score-container span {
     font-size: 1.1em;
+}
+
+/* Game Controls */
+.game-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.control-btn {
+    background-color: #cba6f7;
+    color: #1e1e2e;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+    background-color: #d8c2ff;
+    transform: translateY(-2px);
+}
+
+#pause-game.paused {
+    background-color: #f38ba8;
+}
+
+#pause-game.paused:hover {
+    background-color: #f5a9be;
 }
 
 /* Game Area Styles */
@@ -285,6 +316,65 @@ button:active {
 }
 
 #restart-game:hover {
+    background-color: #c1ebbe;
+}
+
+/* Pause Overlay Styles */
+.pause-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(30, 30, 46, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 90;
+}
+
+.pause-overlay.show {
+    display: flex;
+}
+
+.pause-content {
+    background-color: #313244;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 500px;
+    animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 5px rgba(137, 180, 250, 0.6);
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(137, 180, 250, 0.9);
+    }
+}
+
+.pause-overlay h2 {
+    color: #cba6f7;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.pause-overlay p {
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+#resume-game {
+    background-color: #a6e3a1;
+    color: #1e1e2e;
+    font-size: 1.2em;
+    padding: 12px 0;
+    margin-top: 20px;
+}
+
+#resume-game:hover {
     background-color: #c1ebbe;
 }
 

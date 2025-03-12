@@ -15,6 +15,10 @@
                 <span>Wave: <span id="wave">1</span></span>
                 <span>Available Resources: <span id="resources">10</span></span>
             </div>
+            <div class="game-controls">
+                <button id="pause-game" class="control-btn">Pause Game</button>
+                <button id="new-game" class="control-btn">New Game</button>
+            </div>
         </header>
 
         <div class="game-area">
@@ -91,6 +95,14 @@
                 <p>Your servers couldn't handle the chaos.</p>
                 <p>Final Score: <span id="final-score">0</span></p>
                 <button id="restart-game">Try Again</button>
+            </div>
+        </div>
+        
+        <div id="pauseOverlay" class="pause-overlay">
+            <div class="pause-content">
+                <h2>Game Paused</h2>
+                <p>Your servers are stable for now.</p>
+                <button id="resume-game">Resume Game</button>
             </div>
         </div>
     </div>

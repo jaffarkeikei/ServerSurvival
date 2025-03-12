@@ -4,6 +4,7 @@ const gameState = {
     wave: 1,
     availableResources: 10,
     isGameOver: false,
+    isPaused: false,
     serverHealth: 100,
     metrics: {
         cpu: 50,
@@ -52,7 +53,11 @@ const elements = {
     addMemory: document.getElementById('add-memory'),
     improveNetwork: document.getElementById('improve-network'),
     toggleAutoHeal: document.getElementById('toggle-auto-heal'),
-    toggleAutoScale: document.getElementById('toggle-auto-scale')
+    toggleAutoScale: document.getElementById('toggle-auto-scale'),
+    pauseGame: document.getElementById('pause-game'),
+    newGame: document.getElementById('new-game'),
+    pauseOverlay: document.getElementById('pauseOverlay'),
+    resumeGame: document.getElementById('resume-game')
 };
 
 // Canvas context
@@ -151,6 +156,7 @@ function initGame() {
         wave: 1,
         availableResources: 10,
         isGameOver: false,
+        isPaused: false,
         serverHealth: 100,
         metrics: {
             cpu: 50,
@@ -174,10 +180,18 @@ function initGame() {
     // Update UI
     updateMetricsUI();
     updateScoreUI();
-    logEvent('Game started. Monitoring systems online.', 'info');
     
-    // Hide game over screen
+    // Update pause button text
+    elements.pauseGame.textContent = 'Pause Game';
+    elements.pauseGame.classList.remove('paused');
+    
+    // Hide overlays
     elements.gameOver.classList.remove('show');
+    elements.pauseOverlay.classList.remove('show');
+    
+    // Clear events log
+    elements.eventsContainer.innerHTML = '';
+    logEvent('Game started. Monitoring systems online.', 'info');
     
     // Reset buttons
     elements.toggleAutoHeal.textContent = 'Enable Auto-Healing';
@@ -204,7 +218,7 @@ function startGameLoop() {
     
     // Update game state every 100ms
     gameState.gameLoopInterval = setInterval(() => {
-        if (gameState.isGameOver) return;
+        if (gameState.isGameOver || gameState.isPaused) return;
         
         // Update metrics based on ongoing chaos events
         updateMetrics();
@@ -411,7 +425,7 @@ function startWaveTimer() {
     
     // Set timer for next wave
     gameState.waveTimer = setTimeout(() => {
-        if (gameState.isGameOver) return;
+        if (gameState.isGameOver || gameState.isPaused) return;
         
         // Increase wave
         gameState.wave++;
@@ -451,7 +465,7 @@ function startChaosEvents() {
     
     // Start spawning chaos events
     gameState.chaosEventInterval = setInterval(() => {
-        if (gameState.isGameOver) return;
+        if (gameState.isGameOver || gameState.isPaused) return;
         
         // Only spawn new events if we haven't reached the maximum
         if (gameState.currentChaosEvents.length < gameState.maxSimultaneousEvents) {
@@ -487,7 +501,7 @@ function spawnChaosEvent() {
     
     // Set a timer to automatically remove the event after its duration
     setTimeout(() => {
-        if (gameState.isGameOver) return;
+        if (gameState.isGameOver || gameState.isPaused) return;
         
         // Find event in current events
         const eventIndex = gameState.currentChaosEvents.findIndex(e => e.id === chaosEvent.id);
@@ -581,6 +595,17 @@ function drawServerGrid() {
     
     // Draw server health indicator
     drawServerHealth(ctx);
+    
+    // If paused, draw paused indicator on canvas
+    if (gameState.isPaused) {
+        ctx.fillStyle = 'rgba(30, 30, 46, 0.5)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.font = '24px Arial';
+        ctx.fillStyle = '#cba6f7';
+        ctx.textAlign = 'center';
+        ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+    }
 }
 
 // Draw server nodes
@@ -700,9 +725,34 @@ function drawServerHealth(ctx) {
     ctx.fillText(`Server Health: ${gameState.serverHealth.toFixed(1)}%`, x + width / 2, y + height / 2 + 4);
 }
 
+// Toggle game pause state
+function togglePause() {
+    gameState.isPaused = !gameState.isPaused;
+    
+    if (gameState.isPaused) {
+        // Pause the game
+        elements.pauseGame.textContent = 'Resume Game';
+        elements.pauseGame.classList.add('paused');
+        elements.pauseOverlay.classList.add('show');
+        logEvent('Game paused.', 'info');
+        
+        // Redraw server grid with pause indicator
+        drawServerGrid();
+    } else {
+        // Resume the game
+        elements.pauseGame.textContent = 'Pause Game';
+        elements.pauseGame.classList.remove('paused');
+        elements.pauseOverlay.classList.remove('show');
+        logEvent('Game resumed.', 'info');
+        
+        // Continue the game
+        drawServerGrid();
+    }
+}
+
 // Fix CPU spike
 function fixCPU() {
-    if (gameState.isGameOver) return;
+    if (gameState.isGameOver || gameState.isPaused) return;
     
     // Remove CPU spike events
     const cpuEvents = gameState.currentChaosEvents.filter(event => event.name === 'CPU Spike' || event.name === 'Cache Invalidation');
@@ -729,7 +779,7 @@ function fixCPU() {
 
 // Clear memory
 function clearMemory() {
-    if (gameState.isGameOver) return;
+    if (gameState.isGameOver || gameState.isPaused) return;
     
     // Remove memory leak events
     const memoryEvents = gameState.currentChaosEvents.filter(event => 
@@ -757,7 +807,7 @@ function clearMemory() {
 
 // Restart service
 function restartService() {
-    if (gameState.isGameOver) return;
+    if (gameState.isGameOver || gameState.isPaused) return;
     
     // Check if there are zombie process events
     const zombieEvents = gameState.currentChaosEvents.filter(event => 
@@ -788,7 +838,7 @@ function restartService() {
 
 // Fix network issues
 function fixNetwork() {
-    if (gameState.isGameOver) return;
+    if (gameState.isGameOver || gameState.isPaused) return;
     
     // Check if there are network latency events
     const networkEvents = gameState.currentChaosEvents.filter(event => event.name === 'Network Latency');
@@ -815,7 +865,7 @@ function fixNetwork() {
 
 // Add CPU resources
 function addCPU() {
-    if (gameState.isGameOver || gameState.availableResources < 1) return;
+    if (gameState.isGameOver || gameState.isPaused || gameState.availableResources < 1) return;
     
     // Deduct resources
     gameState.availableResources--;
@@ -833,7 +883,7 @@ function addCPU() {
 
 // Add memory resources
 function addMemory() {
-    if (gameState.isGameOver || gameState.availableResources < 1) return;
+    if (gameState.isGameOver || gameState.isPaused || gameState.availableResources < 1) return;
     
     // Deduct resources
     gameState.availableResources--;
@@ -851,7 +901,7 @@ function addMemory() {
 
 // Improve network infrastructure
 function improveNetwork() {
-    if (gameState.isGameOver || gameState.availableResources < 1) return;
+    if (gameState.isGameOver || gameState.isPaused || gameState.availableResources < 1) return;
     
     // Deduct resources
     gameState.availableResources--;
@@ -870,7 +920,7 @@ function improveNetwork() {
 
 // Toggle auto-healing
 function toggleAutoHeal() {
-    if (gameState.isGameOver) return;
+    if (gameState.isGameOver || gameState.isPaused) return;
     
     gameState.autoHealEnabled = !gameState.autoHealEnabled;
     
@@ -887,7 +937,7 @@ function toggleAutoHeal() {
 
 // Toggle auto-scaling
 function toggleAutoScale() {
-    if (gameState.isGameOver) return;
+    if (gameState.isGameOver || gameState.isPaused) return;
     
     gameState.autoScaleEnabled = !gameState.autoScaleEnabled;
     
@@ -919,8 +969,28 @@ function setupEventListeners() {
     elements.toggleAutoHeal.addEventListener('click', toggleAutoHeal);
     elements.toggleAutoScale.addEventListener('click', toggleAutoScale);
     
+    // Game control buttons
+    elements.pauseGame.addEventListener('click', togglePause);
+    elements.newGame.addEventListener('click', initGame);
+    elements.resumeGame.addEventListener('click', togglePause);
+    
     // Restart game button
     elements.restartGame.addEventListener('click', initGame);
+    
+    // Keyboard controls
+    window.addEventListener('keydown', (e) => {
+        // Pause/unpause on spacebar
+        if (e.code === 'Space') {
+            e.preventDefault(); // Prevent scrolling
+            togglePause();
+        }
+        
+        // New game on N key
+        if (e.code === 'KeyN' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            initGame();
+        }
+    });
 }
 
 // Initialize the game when the page loads
