@@ -24,7 +24,9 @@ const gameState = {
         memory: 0,
         network: 0,
         errorRate: 0
-    }
+    },
+    soundEnabled: true, // Add sound state control
+    currentSoundscape: null // Track current ambient soundscape
 };
 
 // References to DOM elements
@@ -57,7 +59,8 @@ const elements = {
     pauseGame: document.getElementById('pause-game'),
     newGame: document.getElementById('new-game'),
     pauseOverlay: document.getElementById('pauseOverlay'),
-    resumeGame: document.getElementById('resume-game')
+    resumeGame: document.getElementById('resume-game'),
+    toggleSound: document.getElementById('toggle-sound')
 };
 
 // Canvas context
@@ -148,6 +151,870 @@ const chaosEventTypes = [
     }
 ];
 
+// Sound System - Revolutionary "Algorithmic Sound Synthesis"
+const soundSystem = {
+    context: null,
+    masterGain: null,
+    oscillators: {},
+    buffers: {},
+    noiseNodes: {},
+    playing: {},
+    
+    // Initialize the sound system
+    init() {
+        try {
+            // Create audio context
+            this.context = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create master gain node
+            this.masterGain = this.context.createGain();
+            this.masterGain.gain.value = 0.5;
+            this.masterGain.connect(this.context.destination);
+            
+            // Pre-create oscillators for faster response
+            this.createOscillatorBank();
+            
+            // Generate unique synthetic sound buffers
+            this.generateSoundBuffers();
+            
+            console.log('Sound system initialized successfully');
+            return true;
+        } catch (e) {
+            console.error('Failed to initialize sound system:', e);
+            return false;
+        }
+    },
+    
+    // Create a bank of oscillators for quick access
+    createOscillatorBank() {
+        const types = ['sine', 'square', 'sawtooth', 'triangle'];
+        const frequencies = [220, 440, 880, 1760];
+        
+        types.forEach(type => {
+            frequencies.forEach(freq => {
+                const id = `${type}-${freq}`;
+                this.oscillators[id] = {
+                    type,
+                    frequency: freq
+                };
+            });
+        });
+    },
+    
+    // Generate pre-computed sound buffers for unique sounds
+    generateSoundBuffers() {
+        // Generate fractalized noise patterns (unique "digital" sounds)
+        this.buffers.serverHum = this.generateServerHum();
+        this.buffers.cpuWhine = this.generateCPUWhine();
+        this.buffers.memoryClicks = this.generateMemoryClicks();
+        this.buffers.networkBuzz = this.generateNetworkBuzz();
+        this.buffers.errorAlert = this.generateErrorAlert();
+        this.buffers.successChime = this.generateSuccessChime();
+        this.buffers.waveTransition = this.generateWaveTransition();
+        this.buffers.serverCrash = this.generateServerCrash();
+        this.buffers.dataProcessing = this.generateDataProcessing();
+        
+        // Special abstract digital soundscapes
+        this.buffers.calmServer = this.generateCalmServerscape();
+        this.buffers.busyServer = this.generateBusyServerscape();
+        this.buffers.criticalServer = this.generateCriticalServerscape();
+    },
+    
+    // Novel sound generation methods
+    generateServerHum() {
+        // A deep, evolving digital hum with harmonic complexity
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 5, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            for (let i = 0; i < buffer.length; i++) {
+                // Complex waveform with evolving harmonics
+                const t = i / buffer.sampleRate;
+                const fundamental = Math.sin(2 * Math.PI * 80 * t);
+                const harmonic1 = Math.sin(2 * Math.PI * 160 * t) * 0.3;
+                const harmonic2 = Math.sin(2 * Math.PI * 240 * t) * 0.15;
+                
+                // Apply slow modulation
+                const modulation = 0.1 * Math.sin(2 * Math.PI * 0.1 * t);
+                
+                // Digital artifacts - like data pulses
+                const pulses = t % 0.5 < 0.01 ? 0.05 * Math.random() : 0;
+                
+                // Final waveform
+                data[i] = (fundamental + harmonic1 + harmonic2) * (0.9 + modulation) + pulses;
+                
+                // Apply subtle amplitude envelope
+                const envelope = Math.min(t / 0.5, 1) * Math.min((buffer.length - i) / (buffer.sampleRate * 0.5), 1);
+                data[i] *= 0.7 * envelope;
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateCPUWhine() {
+        // High-frequency, reactive digital whine that evolves with CPU load
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 3, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            for (let i = 0; i < buffer.length; i++) {
+                const t = i / buffer.sampleRate;
+                
+                // Base frequency shifts based on channel for stereo effect
+                const baseFreq = 2000 + (channel * 50);
+                
+                // Complex frequency modulation creating digital harmonic texture
+                const modFreq = baseFreq + 500 * Math.sin(2 * Math.PI * 0.2 * t);
+                const mainTone = Math.sin(2 * Math.PI * modFreq * t) * 0.4;
+                
+                // Add digital stutters/glitches
+                const stutter = Math.abs(Math.sin(2 * Math.PI * 0.8 * t)) > 0.9 ? 
+                                Math.sin(2 * Math.PI * 4000 * t) * 0.2 : 0;
+                                
+                // Add quantization noise (simulates digital processing artifacts)
+                const quantNoise = Math.round(Math.sin(2 * Math.PI * 6000 * t) * 8) / 8 * 0.1;
+                
+                // Combine components
+                data[i] = (mainTone + stutter + quantNoise) * 
+                          (0.6 + 0.4 * Math.sin(2 * Math.PI * 0.5 * t));
+                          
+                // Apply volume envelope
+                const envelope = Math.min(t / 0.1, 1) * Math.min((buffer.length - i) / (buffer.sampleRate * 0.5), 1);
+                data[i] *= envelope * 0.6;
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateMemoryClicks() {
+        // Series of digital click patterns that sound like memory operations
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 2, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            const channelOffset = channel * 0.05; // Stereo offset
+            
+            // Create click patterns
+            for (let i = 0; i < 40; i++) {
+                // Clicks happen at pseudo-random intervals
+                const clickTime = (i * 0.05 + channelOffset + Math.random() * 0.03) * buffer.sampleRate;
+                const clickDuration = 0.005 * buffer.sampleRate;
+                
+                // Each click consists of a short burst of digital sound
+                if (clickTime + clickDuration < buffer.length) {
+                    for (let j = 0; j < clickDuration; j++) {
+                        const idx = Math.floor(clickTime + j);
+                        const t = j / buffer.sampleRate;
+                        
+                        // Digital click tone
+                        const clickTone = Math.sin(2 * Math.PI * (800 + i * 50) * t) * 
+                                         Math.exp(-j / (clickDuration * 0.3));
+                                         
+                        // Digital artifact
+                        const artifact = Math.random() * 0.05 * Math.exp(-j / (clickDuration * 0.1));
+                        
+                        // Add to buffer
+                        if (idx < buffer.length) {
+                            data[idx] += (clickTone + artifact) * 0.6;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateNetworkBuzz() {
+        // Fluctuating network interference patterns
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 3, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            for (let i = 0; i < buffer.length; i++) {
+                const t = i / buffer.sampleRate;
+                
+                // Create complex vibration patterns using multiple frequencies
+                // Simulate data packets crossing the network
+                const packetFreq = 4 + channel; // Different packet rates per channel
+                const packetPattern = ((t * packetFreq) % 1) < 0.4 ? 1 : 0;
+                
+                // Create "network frequency" bands
+                const band1 = Math.sin(2 * Math.PI * 800 * t) * 0.2;
+                const band2 = Math.sin(2 * Math.PI * 1200 * t) * 0.15;
+                const band3 = Math.sin(2 * Math.PI * 2400 * t) * 0.1;
+                
+                // Digital noise - quantized and limited
+                const digitalNoise = Math.floor(Math.random() * 8) / 8 * 0.3;
+                
+                // Create fluctuating patterns to simulate network congestion
+                const congestionPattern = Math.sin(2 * Math.PI * 0.2 * t) * 
+                                          Math.sin(2 * Math.PI * 0.5 * t) * 0.4;
+                
+                // Combine all elements with envelope
+                const envelope = Math.min(t / 0.2, 1) * Math.min((buffer.length - i) / (buffer.sampleRate * 0.5), 1);
+                
+                // Final value
+                data[i] = ((band1 + band2 + band3) * packetPattern + digitalNoise * congestionPattern) * envelope * 0.7;
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateErrorAlert() {
+        // Warning alert with unique digital characteristics
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 2, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            // Create 3 warning beeps with digital characteristics
+            for (let beep = 0; beep < 3; beep++) {
+                const beepStart = beep * 0.6 * buffer.sampleRate;
+                const beepLength = 0.2 * buffer.sampleRate;
+                
+                for (let i = 0; i < beepLength; i++) {
+                    if (beepStart + i < buffer.length) {
+                        const t = i / buffer.sampleRate;
+                        
+                        // Base alarm tone - slightly different for each beep
+                        const baseFreq = 880 + beep * 220;
+                        const alarmTone = Math.sin(2 * Math.PI * baseFreq * t);
+                        
+                        // Add harmonics
+                        const harmonic1 = Math.sin(2 * Math.PI * baseFreq * 2 * t) * 0.5;
+                        const harmonic2 = Math.sin(2 * Math.PI * baseFreq * 3 * t) * 0.25;
+                        
+                        // Add digital distortion
+                        const distortion = Math.sin(2 * Math.PI * 4000 * t) * 0.1;
+                        
+                        // Create envelope
+                        const envelope = Math.sin(Math.PI * i / beepLength);
+                        
+                        // Combine components
+                        data[beepStart + i] = (alarmTone + harmonic1 + harmonic2 + distortion) * envelope * 0.7;
+                    }
+                }
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateSuccessChime() {
+        // Positive feedback sound for successful actions
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 1.5, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            // Create a pleasant ascending arpeggio
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            
+            for (let i = 0; i < notes.length; i++) {
+                const noteStart = i * 0.1 * buffer.sampleRate;
+                const noteLength = 0.3 * buffer.sampleRate;
+                
+                for (let j = 0; j < noteLength; j++) {
+                    if (noteStart + j < buffer.length) {
+                        const t = j / buffer.sampleRate;
+                        
+                        // Note with slight detune for warmth
+                        const detune = 1 + (channel * 0.001);
+                        const noteTone = Math.sin(2 * Math.PI * notes[i] * detune * t);
+                        
+                        // Add shimmer with higher harmonics
+                        const shimmer = Math.sin(2 * Math.PI * notes[i] * 2 * t) * 0.2 * 
+                                        Math.sin(2 * Math.PI * 8 * t);
+                        
+                        // Envelope
+                        const attack = Math.min(j / (0.05 * buffer.sampleRate), 1);
+                        const release = Math.min((noteLength - j) / (0.2 * buffer.sampleRate), 1);
+                        const envelope = attack * release;
+                        
+                        // Add to buffer
+                        data[noteStart + j] += (noteTone + shimmer) * envelope * 0.25;
+                    }
+                }
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateWaveTransition() {
+        // Dynamic transition sound between waves
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 4, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            // Whoosh effect
+            for (let i = 0; i < buffer.length; i++) {
+                const t = i / buffer.sampleRate;
+                const phase = t / 4; // 0 to 1 over the duration
+                
+                // Frequency sweep from low to high
+                const freqSweep = 200 + 2000 * phase;
+                const whoosh = Math.sin(2 * Math.PI * freqSweep * t) * 
+                               Math.exp(-Math.pow((phase - 0.5) * 4, 2));
+                
+                // Digital chirp 
+                const chirpFreq = 500 + 3000 * Math.pow(phase, 2);
+                const chirp = Math.sin(2 * Math.PI * chirpFreq * t) * 
+                              Math.exp(-Math.pow((phase - 0.7) * 6, 2)) * 0.5;
+                
+                // Data streams
+                const dataPattern = ((t * 20) % 1) < (0.1 + 0.4 * phase) ? 
+                                    Math.sin(2 * Math.PI * 2000 * t) * 0.2 : 0;
+                
+                // Combined sound
+                data[i] = (whoosh + chirp + dataPattern) * 0.7;
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateServerCrash() {
+        // Catastrophic server failure sound
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 5, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            // Initial power down
+            const powerDownLength = 2 * buffer.sampleRate;
+            for (let i = 0; i < powerDownLength; i++) {
+                const t = i / buffer.sampleRate;
+                const phase = i / powerDownLength; // 0 to 1
+                
+                // Main tone: dropping pitch
+                const dropFreq = 400 * (1 - Math.pow(phase, 2)) + 50;
+                const mainTone = Math.sin(2 * Math.PI * dropFreq * t) * 
+                                 (1 - phase * 0.5);
+                
+                // System failure stuttering
+                const stutter = Math.random() > (0.9 - phase * 0.5) ? 
+                                0.5 * Math.random() * Math.sin(2 * Math.PI * 300 * t) : 0;
+                
+                // Digital breakup
+                const breakup = phase > 0.5 ? 
+                                (Math.random() * 2 - 1) * phase * 0.5 : 0;
+                
+                // Power capacitor discharge sound
+                const discharge = Math.exp(-phase * 10) * 
+                                  Math.sin(2 * Math.PI * (100 + phase * 500) * t) * 0.5;
+                
+                // Combine
+                data[i] = (mainTone + stutter + breakup + discharge) * (1 - phase * 0.5);
+            }
+            
+            // Aftermath - digital embers
+            for (let i = powerDownLength; i < buffer.length; i++) {
+                const t = i / buffer.sampleRate;
+                const phase = (i - powerDownLength) / (buffer.length - powerDownLength);
+                
+                // Small random glitches and pops
+                const glitch = Math.random() > 0.99 ? 
+                               Math.random() * 0.5 * Math.sin(2 * Math.PI * Math.random() * 1000 * t) : 0;
+                
+                // Final fade to silence
+                data[i] = glitch * (1 - phase);
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateDataProcessing() {
+        // Abstract data processing sound
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 2, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            // Create patterns of data processing sounds
+            for (let i = 0; i < buffer.length; i++) {
+                const t = i / buffer.sampleRate;
+                
+                // Base carrier frequency
+                const carrier = Math.sin(2 * Math.PI * 800 * t) * 0.3;
+                
+                // Data packet patterns
+                const packetRate = 30 + (channel * 5); // Different rates per channel
+                const packets = Math.sin(2 * Math.PI * packetRate * t) > 0.7 ? 1 : 0;
+                
+                // Processing tone
+                const processingTone = Math.sin(2 * Math.PI * 1200 * t) * 
+                                      Math.sin(2 * Math.PI * 0.5 * t) * 0.2;
+                
+                // Quantization steps - simulating digital processing steps
+                const quantSteps = Math.floor(t * 20) % 4;
+                const quantization = Math.sin(2 * Math.PI * (500 + quantSteps * 200) * t) * 
+                                    (quantSteps / 4) * 0.2;
+                
+                // Combine with envelope
+                const envelope = Math.min(t / 0.1, 1) * Math.min((buffer.length - i) / (buffer.sampleRate * 0.5), 1);
+                data[i] = (carrier * packets + processingTone + quantization) * envelope * 0.7;
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateCalmServerscape() {
+        // Peaceful ambient server room soundscape
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 20, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            // Base air conditioning hum
+            for (let i = 0; i < buffer.length; i++) {
+                const t = i / buffer.sampleRate;
+                
+                // Low frequency HVAC
+                const hvac = Math.sin(2 * Math.PI * 60 * t) * 0.1 + 
+                             Math.sin(2 * Math.PI * (60.5 + channel * 0.2) * t) * 0.08;
+                
+                // Gentle server fan noise (filtered noise)
+                let fanNoise = 0;
+                for (let j = 1; j <= 10; j++) {
+                    fanNoise += Math.sin(2 * Math.PI * (100 * j + Math.random() * 5) * t) * (0.01 / j);
+                }
+                
+                // Occasional quiet beeps - status indicators
+                const statusBeep = (t % 8 < 0.05 && t > 2) ? 
+                                  Math.sin(2 * Math.PI * 2000 * t) * 0.02 * 
+                                  Math.exp(-(t % 8) / 0.01) : 0;
+                
+                // Distant data transfer sounds
+                const dataTransfer = Math.random() > 0.995 ? 
+                                    Math.sin(2 * Math.PI * 1200 * t) * 0.03 * 
+                                    Math.exp(-(t % 0.1) / 0.02) : 0;
+                
+                // Combine all elements
+                data[i] = hvac + fanNoise + statusBeep + dataTransfer;
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateBusyServerscape() {
+        // Medium-load server room soundscape
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 15, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            for (let i = 0; i < buffer.length; i++) {
+                const t = i / buffer.sampleRate;
+                
+                // Faster fan noise
+                const fastFan = Math.sin(2 * Math.PI * 80 * t) * 0.15 + 
+                               Math.sin(2 * Math.PI * (82 + channel * 0.5) * t) * 0.12;
+                
+                // More active server processing
+                let processing = 0;
+                for (let j = 1; j <= 8; j++) {
+                    processing += Math.sin(2 * Math.PI * (200 * j + Math.sin(t * 0.2) * 10) * t) * (0.02 / j);
+                }
+                
+                // Frequent status indicators and alerts
+                const alerts = (Math.sin(2 * Math.PI * 0.2 * t) > 0.8) ? 
+                              Math.sin(2 * Math.PI * 1500 * t) * 0.07 * 
+                              Math.exp(-(t % 1) / 0.1) : 0;
+                
+                // Data transfer patterns
+                const dataRate = 50 + Math.sin(2 * Math.PI * 0.1 * t) * 20;
+                const dataTransfer = (t % (5 / dataRate) < 0.01) ? 
+                                    Math.sin(2 * Math.PI * 800 * t) * 0.06 : 0;
+                
+                // Combine with subtle modulation
+                const mod = 0.9 + Math.sin(2 * Math.PI * 0.05 * t) * 0.1;
+                data[i] = (fastFan + processing + alerts + dataTransfer) * mod;
+            }
+        }
+        
+        return buffer;
+    },
+    
+    generateCriticalServerscape() {
+        // High-load, critical server status soundscape
+        const buffer = this.context.createBuffer(2, this.context.sampleRate * 12, this.context.sampleRate);
+        
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const data = buffer.getChannelData(channel);
+            
+            for (let i = 0; i < buffer.length; i++) {
+                const t = i / buffer.sampleRate;
+                
+                // Overworked cooling system
+                const cooling = Math.sin(2 * Math.PI * 100 * t) * 0.2 + 
+                               Math.sin(2 * Math.PI * (103 + channel * 1) * t) * 0.15;
+                
+                // System strain harmonics
+                const strain = Math.sin(2 * Math.PI * 200 * t) * 
+                              Math.sin(2 * Math.PI * 0.3 * t) * 0.15;
+                
+                // Warning alerts and indicators
+                const warningFreq = 1.5 + Math.sin(2 * Math.PI * 0.1 * t) * 0.5;
+                const warning = (t % warningFreq < 0.1) ? 
+                               Math.sin(2 * Math.PI * 1800 * t) * 0.15 * 
+                               Math.exp(-(t % warningFreq) / 0.05) : 0;
+                
+                // Irregular data processing glitches
+                const glitchProb = Math.min(0.02 + Math.sin(2 * Math.PI * 0.05 * t) * 0.015, 0.03);
+                const glitch = Math.random() < glitchProb ? 
+                              (Math.random() * 2 - 1) * 0.2 : 0;
+                
+                // System error beeps
+                const errorBeep = (Math.sin(2 * Math.PI * 0.15 * t) > 0.9) ? 
+                                 Math.sin(2 * Math.PI * 2500 * t) * 0.2 * 
+                                 Math.exp(-(t % 1) / 0.2) : 0;
+                
+                // Combine with pulsating modulation
+                const pulseRate = 0.5 + Math.sin(2 * Math.PI * 0.2 * t) * 0.2;
+                const pulseMod = 0.85 + Math.abs(Math.sin(2 * Math.PI * pulseRate * t)) * 0.15;
+                
+                data[i] = (cooling + strain + warning + glitch + errorBeep) * pulseMod;
+            }
+        }
+        
+        return buffer;
+    },
+    
+    // Sound playing functions
+    playSound(soundId, options = {}) {
+        if (!gameState.soundEnabled || !this.context) return;
+        
+        const { volume = 1.0, loop = false, playbackRate = 1.0 } = options;
+        
+        // Stop previous instance if needed
+        if (options.exclusive && this.playing[soundId]) {
+            this.stopSound(soundId);
+        }
+        
+        try {
+            // Create source node
+            const source = this.context.createBufferSource();
+            source.buffer = this.buffers[soundId];
+            source.playbackRate.value = playbackRate;
+            source.loop = loop;
+            
+            // Create gain node for volume control
+            const gainNode = this.context.createGain();
+            gainNode.gain.value = volume;
+            
+            // Connect nodes
+            source.connect(gainNode);
+            gainNode.connect(this.masterGain);
+            
+            // Start playback
+            source.start(0);
+            
+            // Store reference
+            this.playing[soundId] = {
+                source,
+                gainNode,
+                startTime: this.context.currentTime
+            };
+            
+            // Set auto-cleanup for non-looping sounds
+            if (!loop) {
+                source.onended = () => {
+                    delete this.playing[soundId];
+                };
+            }
+            
+            return this.playing[soundId];
+        } catch (e) {
+            console.error(`Error playing sound ${soundId}:`, e);
+            return null;
+        }
+    },
+    
+    stopSound(soundId) {
+        if (this.playing[soundId]) {
+            try {
+                const { source, gainNode } = this.playing[soundId];
+                
+                // Fade out to avoid clicks
+                gainNode.gain.setValueAtTime(gainNode.gain.value, this.context.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0, this.context.currentTime + 0.05);
+                
+                // Stop after fade
+                setTimeout(() => {
+                    source.stop();
+                    delete this.playing[soundId];
+                }, 50);
+            } catch (e) {
+                console.error(`Error stopping sound ${soundId}:`, e);
+            }
+        }
+    },
+    
+    // Play a synthetic tone with dynamic parameters
+    playTone(options = {}) {
+        if (!gameState.soundEnabled || !this.context) return;
+        
+        const {
+            frequency = 440,
+            type = 'sine',
+            duration = 0.5,
+            volume = 0.5,
+            fadeIn = 0.05,
+            fadeOut = 0.05
+        } = options;
+        
+        try {
+            // Create oscillator
+            const oscillator = this.context.createOscillator();
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(frequency, this.context.currentTime);
+            
+            // Create gain node for volume control and envelope
+            const gainNode = this.context.createGain();
+            gainNode.gain.setValueAtTime(0, this.context.currentTime);
+            gainNode.gain.linearRampToValueAtTime(volume, this.context.currentTime + fadeIn);
+            gainNode.gain.setValueAtTime(volume, this.context.currentTime + duration - fadeOut);
+            gainNode.gain.linearRampToValueAtTime(0, this.context.currentTime + duration);
+            
+            // Connect and play
+            oscillator.connect(gainNode);
+            gainNode.connect(this.masterGain);
+            oscillator.start();
+            oscillator.stop(this.context.currentTime + duration);
+            
+            // Auto-cleanup
+            setTimeout(() => {
+                oscillator.disconnect();
+                gainNode.disconnect();
+            }, (duration + 0.1) * 1000);
+            
+            return oscillator;
+        } catch (e) {
+            console.error('Error playing tone:', e);
+            return null;
+        }
+    },
+    
+    // Generate white/pink/brown noise
+    playNoise(options = {}) {
+        if (!gameState.soundEnabled || !this.context) return;
+        
+        const {
+            type = 'white',
+            volume = 0.2,
+            duration = 1,
+            fadeIn = 0.05,
+            fadeOut = 0.1
+        } = options;
+        
+        try {
+            // Create noise buffer
+            const bufferSize = 2 * this.context.sampleRate;
+            const noiseBuffer = this.context.createBuffer(1, bufferSize, this.context.sampleRate);
+            const data = noiseBuffer.getChannelData(0);
+            
+            // Fill with appropriate noise type
+            let lastValue = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                let noise;
+                
+                if (type === 'white') {
+                    // White noise - random values between -1 and 1
+                    noise = Math.random() * 2 - 1;
+                } else if (type === 'pink') {
+                    // Approximation of pink noise - filtered white noise
+                    const white = Math.random() * 2 - 1;
+                    noise = (lastValue + (0.02 * white)) / 1.02;
+                    lastValue = noise;
+                } else if (type === 'brown') {
+                    // Approximation of brown/red noise - more heavily filtered
+                    const white = Math.random() * 2 - 1;
+                    noise = (lastValue + (0.1 * white)) / 1.1;
+                    lastValue = noise;
+                }
+                
+                data[i] = noise;
+            }
+            
+            // Create source and gain
+            const noiseSource = this.context.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            noiseSource.loop = true;
+            
+            const gainNode = this.context.createGain();
+            gainNode.gain.setValueAtTime(0, this.context.currentTime);
+            gainNode.gain.linearRampToValueAtTime(volume, this.context.currentTime + fadeIn);
+            
+            if (duration !== Infinity) {
+                gainNode.gain.setValueAtTime(volume, this.context.currentTime + duration - fadeOut);
+                gainNode.gain.linearRampToValueAtTime(0, this.context.currentTime + duration);
+                
+                setTimeout(() => {
+                    noiseSource.stop();
+                }, duration * 1000);
+            }
+            
+            // Connect and play
+            noiseSource.connect(gainNode);
+            gainNode.connect(this.masterGain);
+            noiseSource.start();
+            
+            // Return control object
+            const id = `noise-${Date.now()}`;
+            this.noiseNodes[id] = {
+                source: noiseSource,
+                gain: gainNode,
+                stop: () => {
+                    gainNode.gain.setValueAtTime(gainNode.gain.value, this.context.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0, this.context.currentTime + 0.1);
+                    setTimeout(() => {
+                        noiseSource.stop();
+                        delete this.noiseNodes[id];
+                    }, 100);
+                }
+            };
+            
+            return this.noiseNodes[id];
+        } catch (e) {
+            console.error('Error generating noise:', e);
+            return null;
+        }
+    },
+    
+    // Play ambient server soundscape based on server health
+    updateServerSoundscape() {
+        if (!gameState.soundEnabled || !this.context) return;
+        
+        let targetSoundscape;
+        
+        // Select soundscape based on server health
+        if (gameState.serverHealth > 75) {
+            targetSoundscape = 'calmServer';
+        } else if (gameState.serverHealth > 30) {
+            targetSoundscape = 'busyServer';
+        } else {
+            targetSoundscape = 'criticalServer';
+        }
+        
+        // Only change if needed
+        if (gameState.currentSoundscape !== targetSoundscape) {
+            // Fade out current soundscape
+            if (gameState.currentSoundscape && this.playing[gameState.currentSoundscape]) {
+                this.stopSound(gameState.currentSoundscape);
+            }
+            
+            // Start new soundscape
+            this.playSound(targetSoundscape, { 
+                volume: 0.4, 
+                loop: true, 
+                exclusive: true 
+            });
+            
+            gameState.currentSoundscape = targetSoundscape;
+        }
+    },
+    
+    // Play a sound when a chaos event spawns
+    playChaosEventSound(eventType) {
+        if (!gameState.soundEnabled || !this.context) return;
+        
+        switch(eventType.name) {
+            case 'CPU Spike':
+                this.playSound('cpuWhine', { volume: 0.6 });
+                break;
+            case 'Memory Leak':
+                this.playSound('memoryClicks', { volume: 0.7 });
+                break;
+            case 'Network Latency':
+                this.playSound('networkBuzz', { volume: 0.6 });
+                break;
+            case 'Error Cascade':
+                this.playSound('errorAlert', { volume: 0.7 });
+                break;
+            case 'Disk Space Full':
+                this.playNoise({
+                    type: 'brown',
+                    volume: 0.3,
+                    duration: 2,
+                    fadeIn: 0.1,
+                    fadeOut: 0.5
+                });
+                
+                // Add some digital fragmentation sounds
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        this.playTone({
+                            frequency: 200 + (i * 300),
+                            type: 'sawtooth',
+                            duration: 0.1,
+                            volume: 0.2
+                        });
+                    }, 200 * i);
+                }
+                break;
+            case 'Zombie Process':
+                // Complex layered sound for zombie processes
+                this.playSound('cpuWhine', { volume: 0.3, playbackRate: 0.8 });
+                
+                setTimeout(() => {
+                    this.playSound('memoryClicks', { volume: 0.4 });
+                }, 200);
+                break;
+            default:
+                // Generic chaos sound
+                this.playTone({
+                    frequency: 587.33, // D5
+                    type: 'square',
+                    duration: 0.3,
+                    volume: 0.5
+                });
+                break;
+        }
+    },
+    
+    // Toggle sound on/off
+    toggleSound() {
+        // Use the sound system's toggle function
+        const soundEnabled = soundSystem.toggleSound();
+        
+        // Update button text
+        gameState.soundEnabled = !gameState.soundEnabled;
+        
+        if (!gameState.soundEnabled) {
+            // Stop all sounds
+            Object.keys(this.playing).forEach(key => {
+                this.stopSound(key);
+            });
+            
+            Object.keys(this.noiseNodes).forEach(key => {
+                this.noiseNodes[key].stop();
+            });
+        } else if (this.context) {
+            // Resume audio context if it was suspended
+            if (this.context.state === 'suspended') {
+                this.context.resume();
+            }
+            
+            // Restart ambient soundscape
+            this.updateServerSoundscape();
+        }
+        
+        return gameState.soundEnabled;
+    }
+};
+
 // Initialize the game
 function initGame() {
     // Reset game state
@@ -174,8 +1041,15 @@ function initGame() {
             memory: 0,
             network: 0,
             errorRate: 0
-        }
+        },
+        soundEnabled: true,
+        currentSoundscape: null
     });
+
+    // Initialize sound system
+    if (!soundSystem.context) {
+        soundSystem.init();
+    }
 
     // Update UI
     updateMetricsUI();
@@ -207,6 +1081,12 @@ function initGame() {
     
     // Draw initial server grid
     drawServerGrid();
+    
+    // Start ambient server sound
+    soundSystem.updateServerSoundscape();
+    
+    // Play game start sound
+    soundSystem.playSound('dataProcessing', { volume: 0.6 });
 }
 
 // Game loop
@@ -239,16 +1119,19 @@ function startGameLoop() {
         // Check for server crash
         checkServerHealth();
         
-        // Increase score over time
-        gameState.score += 1;
+        // Update sound environment based on server health
+        soundSystem.updateServerSoundscape();
+        
+        // Redraw server grid with sound visualizations
+        drawServerGrid();
+        
+        // Increment score (1 point per tick)
+        gameState.score++;
         
         // Update score display every second (10 ticks)
         if (gameState.score % 10 === 0) {
             updateScoreUI();
         }
-        
-        // Redraw server grid
-        drawServerGrid();
     }, 100);
 }
 
@@ -414,39 +1297,41 @@ function startWaveTimer() {
         clearTimeout(gameState.waveTimer);
     }
     
-    // Set wave duration based on current wave (harder waves are shorter)
-    const waveDuration = Math.max(60000 - (gameState.wave * 5000), 20000);
+    // Calculate wave duration based on wave number
+    const waveDuration = Math.max(60000 - (gameState.wave * 5000), 30000);
     
-    // Start chaos events for this wave
+    // Log wave start
+    logEvent(`Wave ${gameState.wave} started. Server systems nominal.`, 'info');
+    
+    // Increase difficulty slightly with each wave
+    gameState.difficultyMultiplier = 1 + (gameState.wave * 0.1);
+    
+    // Calculate repair costs based on wave
+    updateRepairCosts();
+    
+    // Start spawning chaos events for this wave
     startChaosEvents();
     
-    // Log new wave
-    logEvent(`Wave ${gameState.wave} started! Prepare your defenses.`, 'warning');
-    
-    // Set timer for next wave
+    // Set timer for wave end
     gameState.waveTimer = setTimeout(() => {
         if (gameState.isGameOver || gameState.isPaused) return;
         
-        // Increase wave
+        // Increment wave
         gameState.wave++;
         
-        // Give player resources for surviving the wave
-        const resourceReward = Math.floor(5 + (gameState.wave / 2));
-        gameState.availableResources += resourceReward;
-        
-        // Increase difficulty
-        gameState.difficultyMultiplier = 1 + (gameState.wave * 0.1);
-        
-        // Increase max simultaneous events
-        if (gameState.wave % 3 === 0 && gameState.maxSimultaneousEvents < 8) {
-            gameState.maxSimultaneousEvents++;
-        }
-        
         // Update UI
-        updateScoreUI();
+        elements.wave.textContent = gameState.wave;
         
-        // Log wave completion
-        logEvent(`Wave ${gameState.wave - 1} completed! +${resourceReward} resources.`, 'success');
+        // Give player resources for surviving the wave
+        const waveBonus = 5 + Math.floor(gameState.wave * 1.5);
+        gameState.availableResources += waveBonus;
+        elements.resources.textContent = gameState.availableResources;
+        
+        // Log wave end
+        logEvent(`Wave ${gameState.wave - 1} survived! Received ${waveBonus} resources. Wave ${gameState.wave} incoming...`, 'success');
+        
+        // Play wave transition sound
+        soundSystem.playSound('waveTransition', { volume: 0.7 });
         
         // Start next wave
         startWaveTimer();
@@ -499,6 +1384,9 @@ function spawnChaosEvent() {
              chaosEvent.severity === 'high' ? 'error' : 
              chaosEvent.severity === 'medium' ? 'warning' : 'info');
     
+    // Play chaos event sound
+    soundSystem.playChaosEventSound(eventType);
+    
     // Set a timer to automatically remove the event after its duration
     setTimeout(() => {
         if (gameState.isGameOver || gameState.isPaused) return;
@@ -529,6 +1417,15 @@ function gameOver() {
     clearInterval(gameState.chaosEventInterval);
     clearTimeout(gameState.waveTimer);
     
+    // Play server crash sound
+    soundSystem.playSound('serverCrash', { volume: 0.8 });
+    
+    // Stop any ambient soundscape
+    if (gameState.currentSoundscape) {
+        soundSystem.stopSound(gameState.currentSoundscape);
+        gameState.currentSoundscape = null;
+    }
+    
     // Show game over screen
     elements.finalScore.textContent = gameState.score;
     elements.gameOver.classList.add('show');
@@ -555,57 +1452,145 @@ function logEvent(message, type = 'info') {
     }
 }
 
-// Draw server grid on canvas
+// Draw server grid
 function drawServerGrid() {
-    const canvas = elements.gameCanvas;
-    const ctx = canvas.getContext('2d');
+    const ctx = elements.gameCanvas.getContext('2d');
+    const width = elements.gameCanvas.width;
+    const height = elements.gameCanvas.height;
     
     // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, width, height);
     
     // Draw grid background
     ctx.fillStyle = '#1e1e2e';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, width, height);
     
     // Draw grid lines
     ctx.strokeStyle = '#313244';
     ctx.lineWidth = 1;
     
     // Draw vertical lines
-    for (let x = 0; x <= canvas.width; x += 50) {
+    for (let x = 0; x <= width; x += 50) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x, height);
         ctx.stroke();
     }
     
     // Draw horizontal lines
-    for (let y = 0; y <= canvas.height; y += 50) {
+    for (let y = 0; y <= height; y += 50) {
         ctx.beginPath();
         ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+        ctx.lineTo(width, y);
         ctx.stroke();
     }
+    
+    // Calculate server health
+    calculateServerHealth();
     
     // Draw server nodes
     drawServerNodes(ctx);
     
-    // Draw chaos events
+    // Draw active chaos events
     drawChaosEvents(ctx);
     
     // Draw server health indicator
     drawServerHealth(ctx);
     
+    // Add sound visualization if sounds are enabled
+    if (gameState.soundEnabled) {
+        drawSoundVisualization(ctx);
+    }
+    
     // If paused, draw paused indicator on canvas
     if (gameState.isPaused) {
         ctx.fillStyle = 'rgba(30, 30, 46, 0.5)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, width, height);
         
         ctx.font = '24px Arial';
         ctx.fillStyle = '#cba6f7';
         ctx.textAlign = 'center';
-        ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('PAUSED', width / 2, height / 2);
     }
+}
+
+// Draw sound visualization
+function drawSoundVisualization(ctx) {
+    const width = elements.gameCanvas.width;
+    const height = elements.gameCanvas.height;
+    
+    // Create a sound wave visualization at the bottom
+    ctx.save();
+    
+    // Draw based on server health (matching the soundscape)
+    if (gameState.serverHealth > 75) {
+        // Calm visualization - gentle sine wave
+        ctx.strokeStyle = 'rgba(144, 238, 144, 0.5)'; // Light green
+        drawWaveform(ctx, width, height, 1, 5, 0.5);
+    } else if (gameState.serverHealth > 30) {
+        // Busy visualization - more active waveform
+        ctx.strokeStyle = 'rgba(255, 217, 102, 0.6)'; // Yellow
+        drawWaveform(ctx, width, height, 2, 8, 0.8);
+    } else {
+        // Critical visualization - erratic waveform
+        ctx.strokeStyle = 'rgba(255, 127, 127, 0.7)'; // Red
+        drawWaveform(ctx, width, height, 3, 12, 1.2);
+    }
+    
+    ctx.restore();
+    
+    // Add visualization for active chaos events
+    gameState.currentChaosEvents.forEach(event => {
+        const { x, y } = event.visualPosition;
+        
+        // Draw sound wave emanating from chaos event
+        ctx.save();
+        ctx.strokeStyle = event.color + '80'; // Add transparency
+        ctx.lineWidth = 1;
+        
+        // Draw expanding circles
+        const time = Date.now() - event.startTime;
+        const maxRadius = 30;
+        const waveCount = 3;
+        
+        for (let i = 0; i < waveCount; i++) {
+            const offset = (i * maxRadius) / waveCount;
+            const radius = (time / 500 + offset) % maxRadius;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.globalAlpha = 1 - (radius / maxRadius);
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    });
+}
+
+// Helper function to draw waveforms
+function drawWaveform(ctx, width, height, complexity, amplitude, speed) {
+    const baseY = height - 20;
+    const time = Date.now() / 1000;
+    
+    ctx.beginPath();
+    ctx.lineWidth = 2;
+    
+    // Start at left edge
+    ctx.moveTo(0, baseY);
+    
+    // Draw waveform across the bottom
+    for (let x = 0; x < width; x += 2) {
+        let y = baseY;
+        
+        // Add sine waves of different frequencies
+        for (let i = 1; i <= complexity; i++) {
+            y += Math.sin(time * speed * i + x / (50 / i)) * (amplitude / i);
+        }
+        
+        ctx.lineTo(x, y);
+    }
+    
+    ctx.stroke();
 }
 
 // Draw server nodes
@@ -750,117 +1735,163 @@ function togglePause() {
     }
 }
 
-// Fix CPU spike
+// Fix CPU issues
 function fixCPU() {
     if (gameState.isGameOver || gameState.isPaused) return;
     
-    // Remove CPU spike events
-    const cpuEvents = gameState.currentChaosEvents.filter(event => event.name === 'CPU Spike' || event.name === 'Cache Invalidation');
-    
-    if (cpuEvents.length > 0) {
-        // Remove the event
-        const eventIndex = gameState.currentChaosEvents.indexOf(cpuEvents[0]);
-        gameState.currentChaosEvents.splice(eventIndex, 1);
-        
-        // Reduce CPU usage
-        gameState.metrics.cpu = Math.max(gameState.metrics.cpu - 25, 0);
-        
-        // Log
-        logEvent(`Fixed issue: ${cpuEvents[0].name}`, 'success');
-    } else {
-        // Just reduce CPU usage a bit
-        gameState.metrics.cpu = Math.max(gameState.metrics.cpu - 15, 0);
-        logEvent('Optimized CPU usage.', 'info');
+    // Check if enough resources
+    if (gameState.availableResources < gameState.repairCosts.cpu) {
+        logEvent('Not enough resources to fix CPU issues!', 'error');
+        return;
     }
+    
+    // Deduct resources
+    gameState.availableResources -= gameState.repairCosts.cpu;
+    
+    // Fix the CPU
+    let cpuReduction = 30;
+    
+    // Apply fix
+    gameState.metrics.cpu = Math.max(gameState.metrics.cpu - cpuReduction, 10);
+    
+    // Eliminate CPU spike events
+    for (let i = gameState.currentChaosEvents.length - 1; i >= 0; i--) {
+        if (gameState.currentChaosEvents[i].name === 'CPU Spike') {
+            gameState.currentChaosEvents.splice(i, 1);
+        }
+    }
+    
+    // Play success sound
+    soundSystem.playSound('successChime', { volume: 0.6 });
     
     // Update UI
     updateMetricsUI();
+    updateScoreUI();
+    
+    // Log the action
+    logEvent('CPU optimized. Performance improved.', 'success');
 }
 
-// Clear memory
+// Clear memory issues
 function clearMemory() {
     if (gameState.isGameOver || gameState.isPaused) return;
     
-    // Remove memory leak events
-    const memoryEvents = gameState.currentChaosEvents.filter(event => 
-        event.name === 'Memory Leak' || event.name === 'Disk Space Full');
-    
-    if (memoryEvents.length > 0) {
-        // Remove the event
-        const eventIndex = gameState.currentChaosEvents.indexOf(memoryEvents[0]);
-        gameState.currentChaosEvents.splice(eventIndex, 1);
-        
-        // Reduce memory usage
-        gameState.metrics.memory = Math.max(gameState.metrics.memory - 25, 0);
-        
-        // Log
-        logEvent(`Fixed issue: ${memoryEvents[0].name}`, 'success');
-    } else {
-        // Just reduce memory usage a bit
-        gameState.metrics.memory = Math.max(gameState.metrics.memory - 15, 0);
-        logEvent('Cleared memory caches.', 'info');
+    // Check if enough resources
+    if (gameState.availableResources < gameState.repairCosts.memory) {
+        logEvent('Not enough resources to clear memory!', 'error');
+        return;
     }
+    
+    // Deduct resources
+    gameState.availableResources -= gameState.repairCosts.memory;
+    
+    // Fix memory
+    let memoryReduction = 30;
+    
+    // Apply fix
+    gameState.metrics.memory = Math.max(gameState.metrics.memory - memoryReduction, 5);
+    
+    // Eliminate memory leak events
+    for (let i = gameState.currentChaosEvents.length - 1; i >= 0; i--) {
+        if (gameState.currentChaosEvents[i].name === 'Memory Leak' || 
+            gameState.currentChaosEvents[i].name === 'Disk Space Full') {
+            gameState.currentChaosEvents.splice(i, 1);
+        }
+    }
+    
+    // Play memory clearing sound
+    soundSystem.playSound('memoryClicks', { volume: 0.7, playbackRate: 1.5 });
+    setTimeout(() => {
+        soundSystem.playSound('successChime', { volume: 0.5 });
+    }, 500);
     
     // Update UI
     updateMetricsUI();
+    updateScoreUI();
+    
+    // Log the action
+    logEvent('Memory cleared. System running efficiently.', 'success');
 }
 
-// Restart service
+// Restart service to fix errors
 function restartService() {
     if (gameState.isGameOver || gameState.isPaused) return;
     
-    // Check if there are zombie process events
-    const zombieEvents = gameState.currentChaosEvents.filter(event => 
-        event.name === 'Zombie Process' || 
-        event.name === 'Error Flood' || 
-        event.name === 'Database Connection Error');
-    
-    if (zombieEvents.length > 0) {
-        // Remove the event
-        const eventIndex = gameState.currentChaosEvents.indexOf(zombieEvents[0]);
-        gameState.currentChaosEvents.splice(eventIndex, 1);
-        
-        // Reduce relevant metrics
-        gameState.metrics.errorRate = Math.max(gameState.metrics.errorRate - 30, 0);
-        gameState.metrics.cpu = Math.max(gameState.metrics.cpu - 10, 0);
-        
-        // Log
-        logEvent(`Fixed issue: ${zombieEvents[0].name}`, 'success');
-    } else {
-        // Just reduce error rate a bit
-        gameState.metrics.errorRate = Math.max(gameState.metrics.errorRate - 15, 0);
-        logEvent('Restarted service.', 'info');
+    // Check if enough resources
+    if (gameState.availableResources < gameState.repairCosts.errorRate) {
+        logEvent('Not enough resources to restart service!', 'error');
+        return;
     }
+    
+    // Deduct resources
+    gameState.availableResources -= gameState.repairCosts.errorRate;
+    
+    // Fix error rate
+    let errorReduction = 30;
+    
+    // Apply fix
+    gameState.metrics.errorRate = Math.max(gameState.metrics.errorRate - errorReduction, 0);
+    
+    // Eliminate error cascade events
+    for (let i = gameState.currentChaosEvents.length - 1; i >= 0; i--) {
+        if (gameState.currentChaosEvents[i].name === 'Error Cascade' || 
+            gameState.currentChaosEvents[i].name === 'Zombie Process') {
+            gameState.currentChaosEvents.splice(i, 1);
+        }
+    }
+    
+    // Play service restart sound sequence
+    soundSystem.playSound('dataProcessing', { volume: 0.5 });
+    setTimeout(() => {
+        soundSystem.playSound('successChime', { volume: 0.6 });
+    }, 1000);
     
     // Update UI
     updateMetricsUI();
+    updateScoreUI();
+    
+    // Log the action
+    logEvent('Service restarted. Error rate reduced significantly.', 'success');
 }
 
 // Fix network issues
 function fixNetwork() {
     if (gameState.isGameOver || gameState.isPaused) return;
     
-    // Check if there are network latency events
-    const networkEvents = gameState.currentChaosEvents.filter(event => event.name === 'Network Latency');
-    
-    if (networkEvents.length > 0) {
-        // Remove the event
-        const eventIndex = gameState.currentChaosEvents.indexOf(networkEvents[0]);
-        gameState.currentChaosEvents.splice(eventIndex, 1);
-        
-        // Reduce network usage
-        gameState.metrics.network = Math.max(gameState.metrics.network - 25, 0);
-        
-        // Log
-        logEvent('Fixed issue: Network Latency', 'success');
-    } else {
-        // Just reduce network usage a bit
-        gameState.metrics.network = Math.max(gameState.metrics.network - 15, 0);
-        logEvent('Optimized network connections.', 'info');
+    // Check if enough resources
+    if (gameState.availableResources < gameState.repairCosts.network) {
+        logEvent('Not enough resources to fix network issues!', 'error');
+        return;
     }
+    
+    // Deduct resources
+    gameState.availableResources -= gameState.repairCosts.network;
+    
+    // Fix network
+    let networkReduction = 30;
+    
+    // Apply fix
+    gameState.metrics.network = Math.max(gameState.metrics.network - networkReduction, 5);
+    
+    // Eliminate network latency events
+    for (let i = gameState.currentChaosEvents.length - 1; i >= 0; i--) {
+        if (gameState.currentChaosEvents[i].name === 'Network Latency') {
+            gameState.currentChaosEvents.splice(i, 1);
+        }
+    }
+    
+    // Play network fix sound
+    soundSystem.playSound('networkBuzz', { volume: 0.4, playbackRate: 0.8 });
+    setTimeout(() => {
+        soundSystem.playSound('successChime', { volume: 0.6 });
+    }, 300);
     
     // Update UI
     updateMetricsUI();
+    updateScoreUI();
+    
+    // Log the action
+    logEvent('Network optimized. Latency reduced.', 'success');
 }
 
 // Add CPU resources
@@ -944,51 +1975,81 @@ function toggleAutoScale() {
     if (gameState.autoScaleEnabled) {
         elements.toggleAutoScale.textContent = 'Disable Auto-Scaling';
         elements.toggleAutoScale.classList.add('active');
-        logEvent('Auto-scaling enabled.', 'success');
+        logEvent('Auto-scaling enabled. Resources will be automatically allocated as needed.', 'info');
     } else {
         elements.toggleAutoScale.textContent = 'Enable Auto-Scaling';
         elements.toggleAutoScale.classList.remove('active');
-        logEvent('Auto-scaling disabled.', 'info');
+        logEvent('Auto-scaling disabled. Manual resource management required.', 'info');
     }
 }
 
-// Event listeners
+// Toggle game sounds
+function toggleSound() {
+    // Call the sound system's toggle method
+    const soundEnabled = soundSystem.toggleSound();
+    
+    // Update button text
+    elements.toggleSound.textContent = soundEnabled ? 'Mute Sound' : 'Enable Sound';
+    
+    // Log the action
+    logEvent(`Game sounds ${soundEnabled ? 'enabled' : 'disabled'}.`, 'info');
+}
+
+// Set up event listeners
 function setupEventListeners() {
-    // Fix buttons
     elements.fixCpu.addEventListener('click', fixCPU);
     elements.clearMemory.addEventListener('click', clearMemory);
     elements.restartService.addEventListener('click', restartService);
     elements.fixNetwork.addEventListener('click', fixNetwork);
-    
-    // Scale buttons
     elements.addCpu.addEventListener('click', addCPU);
     elements.addMemory.addEventListener('click', addMemory);
     elements.improveNetwork.addEventListener('click', improveNetwork);
-    
-    // Automation buttons
     elements.toggleAutoHeal.addEventListener('click', toggleAutoHeal);
     elements.toggleAutoScale.addEventListener('click', toggleAutoScale);
-    
-    // Game control buttons
     elements.pauseGame.addEventListener('click', togglePause);
-    elements.newGame.addEventListener('click', initGame);
     elements.resumeGame.addEventListener('click', togglePause);
-    
-    // Restart game button
+    elements.newGame.addEventListener('click', initGame);
     elements.restartGame.addEventListener('click', initGame);
+    elements.toggleSound.addEventListener('click', toggleSound);
     
-    // Keyboard controls
-    window.addEventListener('keydown', (e) => {
-        // Pause/unpause on spacebar
-        if (e.code === 'Space') {
-            e.preventDefault(); // Prevent scrolling
-            togglePause();
-        }
+    // Listen for keypress events
+    document.addEventListener('keydown', (e) => {
+        if (gameState.isGameOver) return;
         
-        // New game on N key
-        if (e.code === 'KeyN' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            initGame();
+        switch(e.key) {
+            case 'p':
+                togglePause();
+                break;
+            case '1':
+                fixCPU();
+                break;
+            case '2':
+                clearMemory();
+                break;
+            case '3':
+                restartService();
+                break;
+            case '4':
+                fixNetwork();
+                break;
+            case '5':
+                addCPU();
+                break;
+            case '6':
+                addMemory();
+                break;
+            case '7':
+                improveNetwork();
+                break;
+            case '8':
+                toggleAutoHeal();
+                break;
+            case '9':
+                toggleAutoScale();
+                break;
+            case 'm':
+                toggleSound();
+                break;
         }
     });
 }
