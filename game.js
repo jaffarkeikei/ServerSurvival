@@ -986,10 +986,7 @@ const soundSystem = {
     
     // Toggle sound on/off
     toggleSound() {
-        // Use the sound system's toggle function
-        const soundEnabled = soundSystem.toggleSound();
-        
-        // Update button text
+        // Toggle sound state directly
         gameState.soundEnabled = !gameState.soundEnabled;
         
         if (!gameState.soundEnabled) {
