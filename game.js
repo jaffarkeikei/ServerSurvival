@@ -998,14 +998,50 @@ const soundSystem = {
             Object.keys(this.noiseNodes).forEach(key => {
                 this.noiseNodes[key].stop();
             });
-        } else if (this.context) {
-            // Resume audio context if it was suspended
-            if (this.context.state === 'suspended') {
-                this.context.resume();
-            }
             
-            // Restart ambient soundscape
-            this.updateServerSoundscape();
+            // Clear playing sounds tracking
+            this.playing = {};
+            this.noiseNodes = {};
+            
+            // Clear current soundscape
+            gameState.currentSoundscape = null;
+        } else {
+            // Make sure audio context is active
+            if (this.context) {
+                // Resume audio context if it was suspended or in any non-running state
+                if (this.context.state !== "running") {
+                    this.context.resume().then(() => {
+                        console.log("AudioContext resumed successfully");
+                        
+                        // Restart ambient soundscape
+                        this.updateServerSoundscape();
+                        
+                        // Play a confirmation sound so user knows audio is working
+                        setTimeout(() => {
+                            this.playSound('successChime', { volume: 0.5 });
+                        }, 100);
+                    }).catch(err => {
+                        console.error("Failed to resume AudioContext:", err);
+                    });
+                } else {
+                    // Context is already running, just restart sounds
+                    this.updateServerSoundscape();
+                    
+                    // Play a confirmation sound so user knows audio is working
+                    setTimeout(() => {
+                        this.playSound('successChime', { volume: 0.5 });
+                    }, 100);
+                }
+            } else {
+                // Context was never initialized, try to initialize it now
+                this.init();
+                
+                // Play startup sound
+                setTimeout(() => {
+                    this.updateServerSoundscape();
+                    this.playSound('dataProcessing', { volume: 0.6 });
+                }, 200);
+            }
         }
         
         return gameState.soundEnabled;
