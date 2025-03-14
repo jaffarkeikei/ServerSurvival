@@ -61,7 +61,10 @@ const elements = {
     pauseOverlay: document.getElementById('pauseOverlay'),
     resumeGame: document.getElementById('resume-game'),
     toggleSound: document.getElementById('toggle-sound'),
-    endGame: document.getElementById('end-game')
+    endGame: document.getElementById('end-game'),
+    endGameOverlay: document.getElementById('endGameOverlay'),
+    endGameScore: document.getElementById('end-game-score'),
+    restartAfterEnd: document.getElementById('restart-after-end')
 };
 
 // Canvas context
@@ -1096,6 +1099,7 @@ function initGame() {
     // Hide overlays
     elements.gameOver.classList.remove('show');
     elements.pauseOverlay.classList.remove('show');
+    elements.endGameOverlay.classList.remove('show');
     
     // Clear events log
     elements.eventsContainer.innerHTML = '';
@@ -2052,15 +2056,9 @@ function endGameManually() {
             gameState.currentSoundscape = null;
         }
         
-        // Show game over screen with custom message
-        const gameOverTitle = document.querySelector('#gameOver h2');
-        const gameOverDesc = document.querySelector('#gameOver p');
-        
-        if (gameOverTitle) gameOverTitle.textContent = 'Game Ended';
-        if (gameOverDesc) gameOverDesc.textContent = 'You chose to shut down your servers.';
-        
-        elements.finalScore.textContent = gameState.score;
-        elements.gameOver.classList.add('show');
+        // Show end game overlay with score
+        elements.endGameScore.textContent = gameState.score;
+        elements.endGameOverlay.classList.add('show');
         
         logEvent('Game ended manually by user.', 'info');
     }
@@ -2081,6 +2079,7 @@ function setupEventListeners() {
     elements.resumeGame.addEventListener('click', togglePause);
     elements.newGame.addEventListener('click', initGame);
     elements.restartGame.addEventListener('click', initGame);
+    elements.restartAfterEnd.addEventListener('click', initGame);
     elements.toggleSound.addEventListener('click', toggleSound);
     elements.endGame.addEventListener('click', endGameManually);
     
