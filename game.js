@@ -60,7 +60,8 @@ const elements = {
     newGame: document.getElementById('new-game'),
     pauseOverlay: document.getElementById('pauseOverlay'),
     resumeGame: document.getElementById('resume-game'),
-    toggleSound: document.getElementById('toggle-sound')
+    toggleSound: document.getElementById('toggle-sound'),
+    endGame: document.getElementById('end-game')
 };
 
 // Canvas context
@@ -2028,6 +2029,43 @@ function toggleSound() {
     logEvent(`Game sounds ${soundEnabled ? 'enabled' : 'disabled'}.`, 'info');
 }
 
+// End game manually
+function endGameManually() {
+    if (gameState.isGameOver) return; // Already in game over state
+    
+    // Confirm with the user
+    if (confirm('Are you sure you want to end the current game?')) {
+        // Play server crash sound with lower volume (since it's voluntary)
+        soundSystem.playSound('serverCrash', { volume: 0.5 });
+        
+        // Trigger game over with a special message
+        gameState.isGameOver = true;
+        
+        // Clear intervals
+        clearInterval(gameState.gameLoopInterval);
+        clearInterval(gameState.chaosEventInterval);
+        clearTimeout(gameState.waveTimer);
+        
+        // Stop any ambient soundscape
+        if (gameState.currentSoundscape) {
+            soundSystem.stopSound(gameState.currentSoundscape);
+            gameState.currentSoundscape = null;
+        }
+        
+        // Show game over screen with custom message
+        const gameOverTitle = document.querySelector('#gameOver h2');
+        const gameOverDesc = document.querySelector('#gameOver p');
+        
+        if (gameOverTitle) gameOverTitle.textContent = 'Game Ended';
+        if (gameOverDesc) gameOverDesc.textContent = 'You chose to shut down your servers.';
+        
+        elements.finalScore.textContent = gameState.score;
+        elements.gameOver.classList.add('show');
+        
+        logEvent('Game ended manually by user.', 'info');
+    }
+}
+
 // Set up event listeners
 function setupEventListeners() {
     elements.fixCpu.addEventListener('click', fixCPU);
@@ -2044,6 +2082,7 @@ function setupEventListeners() {
     elements.newGame.addEventListener('click', initGame);
     elements.restartGame.addEventListener('click', initGame);
     elements.toggleSound.addEventListener('click', toggleSound);
+    elements.endGame.addEventListener('click', endGameManually);
     
     // Listen for keypress events
     document.addEventListener('keydown', (e) => {
@@ -2082,6 +2121,9 @@ function setupEventListeners() {
                 break;
             case 'm':
                 toggleSound();
+                break;
+            case 'e':
+                endGameManually();
                 break;
         }
     });
